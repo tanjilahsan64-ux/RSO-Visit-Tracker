@@ -1,0 +1,643 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>RSO Visit Tracker & Admin Portal</title>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --bg-deep: #060913;
+            --bg-gradient: radial-gradient(circle at 50% 0%, #111827 0%, #060913 100%);
+            --surface-glass: rgba(17, 24, 39, 0.7);
+            --surface-card: rgba(22, 30, 49, 0.75);
+            --border-glass: rgba(255, 255, 255, 0.08);
+            --border-highlight: rgba(99, 102, 241, 0.3);
+            
+            --primary: #6366f1;
+            --primary-gradient: linear-gradient(135deg, #6366f1 0%, #4338ca 100%);
+            --accent-cyan: #06b6d4;
+            --accent-green: #10b981;
+            --accent-green-glow: rgba(16, 185, 129, 0.3);
+            --accent-rose: #f43f5e;
+            
+            --text-primary: #f8fafc;
+            --text-secondary: #94a3b8;
+            --text-muted: #64748b;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            background-color: var(--bg-deep);
+            background-image: var(--bg-gradient);
+            background-attachment: fixed;
+            color: var(--text-primary);
+            min-height: 100vh;
+            padding-bottom: 90px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        /* Login Screen Overlay */
+        #loginScreen {
+            position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(6, 9, 19, 0.92); backdrop-filter: blur(24px);
+            z-index: 2000; display: flex; align-items: center; justify-content: center; padding: 20px;
+        }
+
+        .login-card {
+            background: var(--surface-glass); backdrop-filter: blur(20px);
+            border: 1px solid var(--border-highlight); border-radius: 24px;
+            width: 100%; max-width: 400px; padding: 28px;
+            display: flex; flex-direction: column; gap: 18px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7);
+        }
+
+        .login-title { font-size: 1.4rem; font-weight: 800; text-align: center; color: #fff; letter-spacing: -0.02em; }
+        .login-sub { font-size: 0.8rem; text-align: center; color: var(--text-secondary); margin-top: -10px; }
+
+        .form-group { display: flex; flex-direction: column; gap: 6px; }
+        .form-label { font-size: 0.75rem; font-weight: 700; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.05em; }
+        .form-select, .form-input {
+            width: 100%; padding: 12px 14px; background: rgba(10, 15, 26, 0.8);
+            border: 1px solid var(--border-glass); border-radius: 12px;
+            color: var(--text-primary); font-size: 0.9rem; outline: none; transition: all 0.2s;
+        }
+        .form-select:focus, .form-input:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.25); }
+
+        .btn-primary-action {
+            background: linear-gradient(135deg, #6366f1 0%, #06b6d4 100%);
+            color: white; border: none; padding: 14px; border-radius: 12px;
+            font-size: 0.95rem; font-weight: 800; cursor: pointer;
+            box-shadow: 0 8px 20px rgba(99, 102, 241, 0.35); transition: transform 0.2s ease, opacity 0.2s;
+        }
+        .btn-primary-action:active { transform: scale(0.98); opacity: 0.9; }
+
+        header {
+            width: 100%; max-width: 560px; padding: 14px 18px;
+            position: sticky; top: 0; z-index: 500;
+            backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
+            background: rgba(6, 9, 19, 0.85); border-bottom: 1px solid var(--border-glass);
+            display: flex; justify-content: space-between; align-items: center;
+        }
+
+        .brand { display: flex; align-items: center; gap: 10px; }
+        .brand-icon {
+            width: 36px; height: 36px; border-radius: 10px;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--accent-cyan) 100%);
+            display: flex; align-items: center; justify-content: center;
+            box-shadow: 0 4px 15px rgba(99, 102, 241, 0.4);
+        }
+        .brand-icon svg { width: 18px; height: 18px; stroke: #fff; }
+
+        h1 {
+            font-size: 1rem; font-weight: 800;
+            background: linear-gradient(135deg, #fff 0%, #cbd5e1 100%);
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+        }
+
+        .header-actions { display: flex; align-items: center; gap: 8px; }
+        .btn-header {
+            background: rgba(99, 102, 241, 0.1); color: #a5b4fc;
+            border: 1px solid rgba(99, 102, 241, 0.25); padding: 6px 12px;
+            border-radius: 9px; font-size: 0.75rem; font-weight: 700;
+            cursor: pointer; transition: background 0.2s;
+        }
+        .btn-header:hover { background: rgba(99, 102, 241, 0.2); }
+
+        .container {
+            width: 100%; max-width: 560px; padding: 16px;
+            display: flex; flex-direction: column; gap: 12px;
+        }
+
+        .search-box { position: relative; }
+        .search-input {
+            width: 100%; padding: 12px 14px 12px 40px; background: var(--surface-glass);
+            border: 1px solid var(--border-glass); border-radius: 14px; color: var(--text-primary);
+            font-size: 0.88rem; outline: none; backdrop-filter: blur(10px); transition: all 0.2s;
+        }
+        .search-input:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2); }
+        .search-icon { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); width: 18px; height: 18px; stroke: var(--text-muted); }
+
+        /* Next-Level Reorganized Outlet Card */
+        .outlet-card {
+            background: var(--surface-card); border: 1px solid var(--border-glass);
+            border-radius: 16px; padding: 16px; margin-bottom: 4px; position: relative; overflow: hidden;
+            backdrop-filter: blur(12px); box-shadow: 0 10px 30px -10px rgba(0,0,0,0.5);
+            transition: transform 0.2s, border-color 0.2s;
+        }
+        .outlet-card:hover { border-color: rgba(99, 102, 241, 0.3); }
+        .outlet-card::before { content: ''; position: absolute; top: 0; left: 0; width: 4px; height: 100%; background: var(--primary); }
+        .outlet-card.visited { background: rgba(16, 185, 129, 0.04); border-color: rgba(16, 185, 129, 0.25); }
+        .outlet-card.visited::before { background: var(--accent-green); }
+
+        .outlet-top-row { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px; }
+        .outlet-code-wrap { display: flex; flex-direction: column; gap: 2px; }
+        .outlet-code { font-size: 1.15rem; font-weight: 800; color: #38bdf8; letter-spacing: -0.01em; }
+        .rso-badge { font-size: 0.72rem; color: var(--text-secondary); font-weight: 600; }
+        .rso-badge strong { color: var(--text-primary); }
+
+        /* Re-organized details block */
+        .details-container {
+            display: grid; grid-template-columns: 1fr 1fr; gap: 8px;
+            margin-bottom: 12px; background: rgba(5, 8, 16, 0.4);
+            padding: 10px 12px; border-radius: 12px; border: 1px solid rgba(255, 255, 255, 0.03);
+        }
+        .detail-cell { display: flex; flex-direction: column; gap: 2px; }
+        .detail-label { font-size: 0.65rem; color: var(--text-muted); font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; }
+        .detail-value { font-size: 0.88rem; font-weight: 700; color: var(--text-primary); }
+
+        .status-badge-inline {
+            display: inline-flex; align-items: center; gap: 4px;
+            font-size: 0.75rem; font-weight: 800; padding: 4px 10px; border-radius: 8px;
+        }
+        .status-y { background: rgba(16, 185, 129, 0.15); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.3); }
+        .status-n { background: rgba(244, 63, 94, 0.15); color: #fda4af; border: 1px solid rgba(244, 63, 94, 0.3); }
+
+        /* Large Prominent Visit Button */
+        .btn-large-visit {
+            width: 100%; padding: 14px; margin-top: 10px; border-radius: 12px; border: none;
+            background: rgba(255, 255, 255, 0.06); color: var(--text-primary); font-size: 0.92rem;
+            font-weight: 800; cursor: pointer; display: flex; align-items: center; justify-content: center;
+            gap: 10px; transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1); border: 1px solid var(--border-glass);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+        }
+        .btn-large-visit:hover { background: rgba(255, 255, 255, 0.1); }
+        .btn-large-visit.is-visited {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            color: #ffffff; border-color: #10b981;
+            box-shadow: 0 6px 20px rgba(16, 185, 129, 0.35);
+        }
+
+        /* Bottom Floating Control Bar */
+        .bottom-bar {
+            position: fixed; bottom: 16px; left: 50%; transform: translateX(-50%);
+            width: calc(100% - 32px); max-width: 528px;
+            background: rgba(17, 24, 39, 0.85); backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.12); border-radius: 16px;
+            padding: 12px 18px; display: flex; align-items: center; justify-content: space-between;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.7); z-index: 500;
+        }
+        .counter-num { font-size: 0.9rem; font-weight: 800; color: #fff; }
+        .counter-label { font-size: 0.7rem; color: var(--text-secondary); }
+        
+        .btn-export {
+            background: rgba(16, 185, 129, 0.15); color: #34d399;
+            border: 1px solid rgba(16, 185, 129, 0.35); padding: 8px 16px;
+            border-radius: 10px; font-size: 0.82rem; font-weight: 800; cursor: pointer; display: none;
+            box-shadow: 0 4px 12px rgba(16, 185, 129, 0.2); transition: background 0.2s;
+        }
+        .btn-export:hover { background: rgba(16, 185, 129, 0.25); }
+
+        /* Admin Password Modal */
+        .modal-overlay {
+            position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.75); backdrop-filter: blur(10px); z-index: 2500;
+            display: flex; align-items: center; justify-content: center;
+            opacity: 0; pointer-events: none; transition: opacity 0.3s ease;
+        }
+        .modal-overlay.active { opacity: 1; pointer-events: auto; }
+        .modal-card {
+            background: #0f172a; border: 1px solid var(--border-highlight);
+            border-radius: 20px; width: 90%; max-width: 360px; padding: 24px;
+            display: flex; flex-direction: column; gap: 14px;
+            box-shadow: 0 25px 50px rgba(0,0,0,0.8);
+        }
+
+        .toast {
+            position: fixed; top: 70px; left: 50%; transform: translateX(-50%) translateY(-20px);
+            background: #10b981; color: #022c22; padding: 8px 16px;
+            border-radius: 30px; font-weight: 800; font-size: 0.82rem; z-index: 3000;
+            opacity: 0; pointer-events: none; transition: all 0.3s ease;
+            box-shadow: 0 10px 25px rgba(16, 185, 129, 0.4);
+        }
+        .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+    </style>
+</head>
+<body>
+
+<!-- Login & Role Selection Screen -->
+<div id="loginScreen">
+    <div class="login-card">
+        <div class="login-title">RSO Visit Portal</div>
+        <div class="login-sub">Select your account or sign in as Admin</div>
+        
+        <div class="form-group">
+            <label class="form-label">Select User Role</label>
+            <select id="roleSelect" class="form-select" onchange="toggleRoleInput()">
+                <option value="rso">RSO (Retail Sales Officer)</option>
+                <option value="admin">Administrator</option>
+            </select>
+        </div>
+
+        <div class="form-group" id="rsoDropdownGroup">
+            <label class="form-label">Select RSO</label>
+            <select id="rsoUserSelect" class="form-select">
+                <option value="">Loading RSOs...</option>
+            </select>
+        </div>
+
+        <div class="form-group" id="adminPassGroup" style="display:none;">
+            <label class="form-label">Admin Password</label>
+            <!-- Removed plain-text password hint per instructions -->
+            <input type="password" id="adminPasswordInput" class="form-input" placeholder="Enter admin password">
+        </div>
+
+        <button class="btn-primary-action" onclick="handleLogin()">Login & Start Tracking</button>
+    </div>
+</div>
+
+<header>
+    <div class="brand">
+        <div class="brand-icon">
+            <svg fill="none" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+        </div>
+        <h1 id="headerTitle">RSO Tracker</h1>
+    </div>
+    <div class="header-actions">
+        <button class="btn-header" onclick="logoutUser()">Switch User</button>
+    </div>
+</header>
+
+<div class="container">
+    <div class="search-box">
+        <svg class="search-icon" fill="none" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+        <input type="text" id="searchInput" class="search-input" placeholder="Search Retailer Code, Number, Category..." oninput="updateNearbyList()">
+    </div>
+
+    <div id="listView">
+        <div id="retailerList">
+            <div style="text-align: center; padding: 32px; color: var(--text-secondary); font-weight: 600;">Loading Retailer Data...</div>
+        </div>
+    </div>
+</div>
+
+<div class="bottom-bar">
+    <div>
+        <span id="retailerCount" class="counter-num">0 Outlets</span>
+        <div id="visitedCount" class="counter-label">0 visited</div>
+    </div>
+    <button id="exportBtn" class="btn-export" onclick="exportVisitReport()">Export Visit CSV</button>
+</div>
+
+<!-- Admin Password Authorization Modal -->
+<div id="adminModal" class="modal-overlay" onclick="closeAdminModal()">
+    <div class="modal-card" onclick="event.stopPropagation()">
+        <span style="font-weight: 800; font-size: 1.05rem; color: #fff;">Admin Authorization Required</span>
+        <p style="font-size: 0.8rem; color: var(--text-secondary);">Enter password to securely export visit records:</p>
+        <input type="password" id="modalPasswordInput" class="form-input" placeholder="Password">
+        <button class="btn-primary-action" onclick="verifyAdminExport()">Confirm & Export</button>
+    </div>
+</div>
+
+<div id="toast" class="toast"><span id="toastMsg">Ready</span></div>
+
+<script>
+    const CSV_URL = 'https://raw.githubusercontent.com/tanjilahsan64-ux/RSO-Visit-Tracker/refs/heads/main/retailers.csv';
+
+    // Provided RSO list mapping code to Name
+    const predefinedRSOs = [
+        { code: "RS052122", name: "Fahad" },
+        { code: "RS050430", name: "Rajib" },
+        { code: "RS055630", name: "Elias" },
+        { code: "RS051661", name: "Emon" },
+        { code: "RS050418", name: "Foysal" },
+        { code: "RS050429", name: "Sabbir" },
+        { code: "RS055081", name: "Al Amin" },
+        { code: "RS050424", name: "Shohag" },
+        { code: "RS055317", name: "Riyad" },
+        { code: "RS053954", name: "Ahad" },
+        { code: "RS050419", name: "Tonoy" }
+    ];
+
+    let db;
+    let retailers = [];
+    let currentUser = null; 
+
+    // Initialize IndexedDB
+    const dbReq = indexedDB.open("RSOTrackerDB", 3);
+    dbReq.onupgradeneeded = e => {
+        db = e.target.result;
+        if (!db.objectStoreNames.contains("outlets")) db.createObjectStore("outlets", { keyPath: "code" });
+        if (!db.objectStoreNames.contains("visits")) db.createObjectStore("visits", { keyPath: "id", autoIncrement: true });
+    };
+    dbReq.onsuccess = e => {
+        db = e.target.result;
+        populateRSODropdown();
+        fetchAndParseCSV();
+    };
+
+    function populateRSODropdown() {
+        // Sort numerically/alphabetically by code e.g. RS050418...
+        const sortedRSOs = [...predefinedRSOs].sort((a, b) => a.code.localeCompare(b.code, undefined, { numeric: true, sensitivity: 'base' }));
+        
+        const rsoSelect = document.getElementById('rsoUserSelect');
+        rsoSelect.innerHTML = '';
+        sortedRSOs.forEach(rso => {
+            const opt = document.createElement('option');
+            opt.value = rso.code;
+            opt.innerText = `${rso.code} - ${rso.name}`;
+            rsoSelect.appendChild(opt);
+        });
+    }
+
+    function toggleRoleInput() {
+        const role = document.getElementById('roleSelect').value;
+        if (role === 'admin') {
+            document.getElementById('rsoDropdownGroup').style.display = 'none';
+            document.getElementById('adminPassGroup').style.display = 'flex';
+        } else {
+            document.getElementById('rsoDropdownGroup').style.display = 'flex';
+            document.getElementById('adminPassGroup').style.display = 'none';
+        }
+    }
+
+    function fetchAndParseCSV() {
+        fetch(CSV_URL)
+            .then(res => res.text())
+            .then(text => { parseCSV(text); })
+            .catch(() => { showToast("Failed to load CSV from repository"); });
+    }
+
+    function parseCSVLine(line) {
+        const result = [];
+        let cur = '', inQuotes = false;
+        for (let i = 0; i < line.length; i++) {
+            const c = line[i];
+            if (c === '"') inQuotes = !inQuotes;
+            else if (c === ',' && !inQuotes) {
+                result.push(cur.trim().replace(/^"|"$/g, ''));
+                cur = '';
+            } else cur += c;
+        }
+        result.push(cur.trim().replace(/^"|"$/g, ''));
+        return result;
+    }
+
+    function parseCSV(text) {
+        const lines = text.split(/\r\n|\n/);
+        if (lines.length < 2) return;
+
+        retailers = [];
+
+        for (let i = 1; i < lines.length; i++) {
+            const line = lines[i].trim();
+            if (!line) continue;
+            const cols = parseCSVLine(line);
+            if (cols.length < 10) continue;
+
+            // Column mappings requested:
+            // A (Col 0) -> Retailer Code
+            // B (Col 1) -> RSO Code
+            // E (Col 4) -> Retailer Number
+            // F (Col 5) -> Category (SSO or LSO)
+            // J (Col 9) -> Status (Y or N)
+            const retailerCode = cols[0] || '';
+            const rsoCode = cols[1] || 'General';
+            const retailerNumber = cols[4] || '';
+            const category = cols[5] || '';
+            const status = cols[9] || '';
+
+            if (retailerCode) {
+                retailers.push({
+                    code: retailerCode,
+                    rsoCode: rsoCode,
+                    number: retailerNumber,
+                    category: category,
+                    status: status.toUpperCase(),
+                    visited: false,
+                    visitedAt: null
+                });
+            }
+        }
+
+        loadVisitsFromDB();
+    }
+
+    function loadVisitsFromDB() {
+        if (!db) return;
+        const tx = db.transaction("visits", "readonly");
+        const store = tx.objectStore("visits");
+        const req = store.getAll();
+        req.onsuccess = () => {
+            const visits = req.result || [];
+            visits.forEach(v => {
+                const match = retailers.find(r => r.code === v.outletCode);
+                if (match) {
+                    match.visited = true;
+                    match.visitedAt = v.timestamp;
+                }
+            });
+            updateCounters();
+            updateNearbyList();
+        };
+    }
+
+    function handleLogin() {
+        const role = document.getElementById('roleSelect').value;
+        if (role === 'admin') {
+            const pass = document.getElementById('adminPasswordInput').value;
+            if (pass === '121314') {
+                currentUser = { role: 'admin', name: 'Administrator' };
+                document.getElementById('headerTitle').innerText = "Admin Portal (All Outlets)";
+                document.getElementById('exportBtn').style.display = 'block';
+                document.getElementById('loginScreen').style.display = 'none';
+                showToast("Logged in as Admin");
+                updateNearbyList();
+            } else {
+                alert("Incorrect password!");
+            }
+        } else {
+            const selectedRsoCode = document.getElementById('rsoUserSelect').value;
+            const foundObj = predefinedRSOs.find(r => r.code === selectedRsoCode);
+            const rsoNameFormatted = foundObj ? `${foundObj.code} (${foundObj.name})` : selectedRsoCode;
+            
+            currentUser = { role: 'rso', code: selectedRsoCode, name: rsoNameFormatted };
+            document.getElementById('headerTitle').innerText = `RSO: ${rsoNameFormatted}`;
+            document.getElementById('exportBtn').style.display = 'none'; 
+            document.getElementById('loginScreen').style.display = 'none';
+            showToast(`Welcome, ${rsoNameFormatted}`);
+            updateNearbyList();
+        }
+    }
+
+    function logoutUser() {
+        currentUser = null;
+        document.getElementById('loginScreen').style.display = 'flex';
+    }
+
+    function getFilteredRetailers() {
+        if (!currentUser) return [];
+        const searchVal = document.getElementById('searchInput').value.toLowerCase().trim();
+        
+        return retailers.filter(item => {
+            // Filter by RSO code if regular user, or show all for Admin
+            if (currentUser.role === 'rso' && item.rsoCode !== currentUser.code) return false;
+
+            if (searchVal) {
+                return item.code.toLowerCase().includes(searchVal) ||
+                       item.number.toLowerCase().includes(searchVal) ||
+                       item.category.toLowerCase().includes(searchVal);
+            }
+            return true;
+        });
+    }
+
+    function updateNearbyList() {
+        const data = getFilteredRetailers();
+        const container = document.getElementById('retailerList');
+        
+        if (data.length === 0) {
+            container.innerHTML = `<div style="text-align: center; padding: 32px; color: var(--text-muted); font-weight: 600;">No outlets found.</div>`;
+            return;
+        }
+
+        container.innerHTML = '';
+        data.forEach(item => {
+            const card = document.createElement('div');
+            card.className = `outlet-card ${item.visited ? 'visited' : ''}`;
+            const statusClass = item.status === 'Y' ? 'status-y' : 'status-n';
+
+            // Re-organized UI Card layout showing Retailer Code, RSO, Retailer Number, Category (SSO/LSO), and Status (Y/N) clearly
+            card.innerHTML = `
+                <div class="outlet-top-row">
+                    <div class="outlet-code-wrap">
+                        <div class="outlet-code">${escapeHtml(item.code)}</div>
+                        <span class="rso-badge">Assigned RSO: <strong>${escapeHtml(item.rsoCode)}</strong></span>
+                    </div>
+                    <div>
+                        <span class="status-badge-inline ${statusClass}">STATUS: ${escapeHtml(item.status)}</span>
+                    </div>
+                </div>
+
+                <div class="details-container">
+                    <div class="detail-cell">
+                        <span class="detail-label">Retailer Number</span>
+                        <span class="detail-value">${escapeHtml(item.number || 'N/A')}</span>
+                    </div>
+                    <div class="detail-cell">
+                        <span class="detail-label">Category (SSO / LSO)</span>
+                        <span class="detail-value">${escapeHtml(item.category || 'N/A')}</span>
+                    </div>
+                </div>
+                
+                <!-- LARGE VISIBLE VISIT BUTTON -->
+                <button class="btn-large-visit ${item.visited ? 'is-visited' : ''}" onclick="toggleVisit('${escapeHtml(item.code)}')">
+                    <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/></svg>
+                    ${item.visited ? 'VISITED ✓ (Click to Undo)' : 'CLICK TO VISIT STORE'}
+                </button>
+            `;
+            container.appendChild(card);
+        });
+        updateCounters();
+    }
+
+    function toggleVisit(code) {
+        const item = retailers.find(r => r.code === code);
+        if (!item) return;
+
+        item.visited = !item.visited;
+        item.visitedAt = item.visited ? new Date().toISOString() : null;
+
+        if (db) {
+            const tx = db.transaction("visits", "readwrite");
+            const store = tx.objectStore("visits");
+            if (item.visited) {
+                store.put({
+                    id: `${currentUser.name}_${code}_${Date.now()}`,
+                    rsoName: currentUser.name,
+                    outletCode: code,
+                    number: item.number,
+                    category: item.category,
+                    timestamp: item.visitedAt
+                });
+            } else {
+                store.delete(code);
+            }
+        }
+
+        updateNearbyList();
+        showToast(item.visited ? `Recorded visit for ${code}` : `Removed visit for ${code}`);
+    }
+
+    function updateCounters() {
+        const filtered = getFilteredRetailers();
+        const visited = filtered.filter(r => r.visited).length;
+        document.getElementById('retailerCount').innerText = `${filtered.length} Outlets`;
+        document.getElementById('visitedCount').innerText = `${visited} visited`;
+    }
+
+    function exportVisitReport() {
+        if (currentUser.role !== 'admin') {
+            alert("Only admin can export visit data!");
+            return;
+        }
+        document.getElementById('adminModal').classList.add('active');
+    }
+
+    function closeAdminModal() {
+        document.getElementById('adminModal').classList.remove('active');
+    }
+
+    function verifyAdminExport() {
+        const pass = document.getElementById('modalPasswordInput').value;
+        if (pass === '121314') {
+            closeAdminModal();
+            executeCSVExport();
+        } else {
+            alert("Incorrect Admin Password!");
+        }
+    }
+
+    function executeCSVExport() {
+        if (!db) return;
+        const tx = db.transaction("visits", "readonly");
+        const store = tx.objectStore("visits");
+        const req = store.getAll();
+
+        req.onsuccess = () => {
+            const visits = req.result || [];
+            let csvContent = "data:text/csv;charset=utf-8,RSO Name,Retailer Code,Retailer Number,Category,Visit Timestamp\n";
+
+            visits.forEach(v => {
+                csvContent += `"${v.rsoName}","${v.outletCode}","${v.number || ''}","${v.category || ''}","${v.timestamp}"\n`;
+            });
+
+            const encodedUri = encodeURI(csvContent);
+            const link = document.createElement("a");
+            link.setAttribute("href", encodedUri);
+            link.setAttribute("download", `Visit_Report_${new Date().toISOString().slice(0,10)}.csv`);
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            showToast("Visit CSV Exported Successfully");
+        };
+    }
+
+    let toastTimer;
+    function showToast(msg) {
+        const t = document.getElementById('toast');
+        document.getElementById('toastMsg').innerText = msg;
+        t.classList.add('show');
+        clearTimeout(toastTimer);
+        toastTimer = setTimeout(() => t.classList.remove('show'), 2000);
+    }
+
+    function escapeHtml(str) {
+        return String(str).replace(/[&<>"']/g, m => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' }[m]));
+    }
+</script>
+</body>
+</html>
