@@ -126,7 +126,6 @@
             display: flex; flex-direction: column; gap: 16px;
         }
 
-        /* Admin Dashboard & Map Styling */
         .admin-dashboard {
             display: flex; flex-direction: column; gap: 18px; width: 100%;
         }
@@ -136,14 +135,12 @@
         .dash-card {
             background: var(--surface-card); border: 1px solid var(--border-glass);
             border-radius: 20px; padding: 20px; backdrop-filter: blur(16px);
-            box-shadow: 0 12px 30px -6px rgba(0,0,0,0.5); transition: border-color 0.2s;
+            box-shadow: 0 12px 30px -6px rgba(0,0,0,0.5);
         }
-        .dash-card:hover { border-color: rgba(99, 102, 241, 0.3); }
         .dash-card-title { font-size: 0.74rem; color: var(--text-secondary); font-weight: 700; text-transform: uppercase; margin-bottom: 8px; letter-spacing: 0.06em; }
         .dash-card-value { font-size: 1.65rem; font-weight: 800; color: #fff; letter-spacing: -0.02em; }
-        .dash-card-sub { font-size: 0.78rem; color: var(--accent-green); margin-top: 8px; font-weight: 700; display: flex; align-items: center; gap: 4px; }
+        .dash-card-sub { font-size: 0.78rem; color: var(--accent-green); margin-top: 8px; font-weight: 700; }
 
-        /* Map Container Panel */
         .map-section {
             background: var(--surface-card); border: 1px solid var(--border-glass);
             border-radius: 24px; padding: 20px; display: flex; flex-direction: column; gap: 14px;
@@ -154,25 +151,20 @@
         
         #mapContainer {
             width: 100%; height: 340px; border-radius: 16px; border: 1px solid var(--border-glass);
-            z-index: 1; background: #0b0f19; box-shadow: inset 0 4px 12px rgba(0,0,0,0.6);
+            z-index: 1; background: #e2e8f0; box-shadow: inset 0 4px 12px rgba(0,0,0,0.2);
         }
 
-        .section-title { font-size: 1.05rem; font-weight: 800; color: #fff; margin-top: 8px; display: flex; justify-content: space-between; align-items: center; letter-spacing: -0.01em; }
+        .section-title { font-size: 1.05rem; font-weight: 800; color: #fff; margin-top: 8px; display: flex; justify-content: space-between; align-items: center; }
         
-        .ranking-list {
-            display: flex; flex-direction: column; gap: 10px;
-        }
+        .ranking-list { display: flex; flex-direction: column; gap: 10px; }
         .ranking-item {
             background: var(--surface-card); border: 1px solid var(--border-glass);
             border-radius: 16px; padding: 16px 18px; display: flex; justify-content: space-between; align-items: center;
-            box-shadow: 0 10px 24px rgba(0,0,0,0.35); backdrop-filter: blur(12px);
         }
         .ranking-info { display: flex; flex-direction: column; gap: 4px; }
         .ranking-name { font-weight: 800; font-size: 0.96rem; color: #fff; }
         .ranking-meta { font-size: 0.78rem; color: var(--text-secondary); }
-        .ranking-badge {
-            font-size: 0.78rem; font-weight: 800; padding: 6px 14px; border-radius: 12px;
-        }
+        .ranking-badge { font-size: 0.78rem; font-weight: 800; padding: 6px 14px; border-radius: 12px; }
         .badge-top { background: rgba(52, 211, 153, 0.18); color: #34d399; border: 1px solid rgba(52, 211, 153, 0.35); }
         .badge-bottom { background: rgba(244, 63, 94, 0.18); color: #fb7185; border: 1px solid rgba(244, 63, 94, 0.35); }
 
@@ -180,13 +172,12 @@
         .search-input {
             width: 100%; padding: 15px 18px 15px 48px; background: var(--surface-glass);
             border: 1px solid var(--border-glass); border-radius: 18px; color: var(--text-primary);
-            font-size: 0.95rem; outline: none; backdrop-filter: blur(16px); transition: all 0.25s ease;
+            font-size: 0.95rem; outline: none; backdrop-filter: blur(16px);
             box-shadow: 0 10px 24px rgba(0,0,0,0.35);
         }
-        .search-input:focus { border-color: var(--primary-light); box-shadow: 0 0 0 5px rgba(99, 102, 241, 0.25); background: rgba(26, 34, 56, 0.9); }
+        .search-input:focus { border-color: var(--primary-light); box-shadow: 0 0 0 5px rgba(99, 102, 241, 0.25); }
         .search-icon { position: absolute; left: 18px; top: 50%; transform: translateY(-50%); width: 20px; height: 20px; stroke: var(--text-muted); }
 
-        /* Outlet Card */
         .outlet-card {
             background: var(--surface-card); border: 1px solid var(--border-glass);
             border-radius: 20px; padding: 20px; margin-bottom: 12px; position: relative; overflow: hidden;
@@ -200,7 +191,7 @@
 
         .outlet-top-row { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 14px; }
         .outlet-code-wrap { display: flex; flex-direction: column; gap: 4px; }
-        .outlet-code { font-size: 1.3rem; font-weight: 800; color: #38bdf8; letter-spacing: -0.01em; }
+        .outlet-code { font-size: 1.3rem; font-weight: 800; color: #38bdf8; }
         .rso-badge { font-size: 0.78rem; color: var(--text-secondary); font-weight: 600; }
         .rso-badge strong { color: var(--text-primary); }
 
@@ -233,18 +224,16 @@
             width: 100%; padding: 16px; margin-top: 4px; border-radius: 16px; border: none;
             background: rgba(255, 255, 255, 0.08); color: var(--text-primary); font-size: 1rem;
             font-weight: 800; cursor: pointer; display: flex; align-items: center; justify-content: center;
-            gap: 12px; transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1); border: 1px solid var(--border-glass);
-            box-shadow: 0 8px 20px rgba(0,0,0,0.3);
+            gap: 12px; border: 1px solid var(--border-glass); box-shadow: 0 8px 20px rgba(0,0,0,0.3);
+            transition: all 0.25s ease;
         }
-        .btn-large-visit:hover { background: rgba(255, 255, 255, 0.14); border-color: rgba(255, 255, 255, 0.2); transform: translateY(-1px); }
-        .btn-large-visit:active { transform: scale(0.98); }
+        .btn-large-visit:hover { background: rgba(255, 255, 255, 0.14); transform: translateY(-1px); }
         .btn-large-visit.is-visited {
             background: linear-gradient(135deg, #059669 0%, #10b981 100%);
             color: #ffffff; border-color: #34d399;
             box-shadow: 0 10px 28px rgba(16, 185, 129, 0.45);
         }
 
-        /* Bottom Floating Control Bar */
         .bottom-bar {
             position: fixed; bottom: 18px; left: 50%; transform: translateX(-50%);
             width: calc(100% - 36px); max-width: 584px;
@@ -253,17 +242,17 @@
             padding: 16px 22px; display: flex; align-items: center; justify-content: space-between;
             box-shadow: 0 30px 60px rgba(0,0,0,0.85); z-index: 500;
         }
-        .counter-num { font-size: 1rem; font-weight: 800; color: #fff; letter-spacing: -0.01em; }
+        .counter-num { font-size: 1rem; font-weight: 800; color: #fff; }
         .counter-label { font-size: 0.75rem; color: var(--text-secondary); margin-top: 3px; font-weight: 600; }
         
         .btn-export {
             background: rgba(52, 211, 153, 0.18); color: #34d399;
             border: 1px solid rgba(52, 211, 153, 0.45); padding: 10px 20px;
             border-radius: 14px; font-size: 0.9rem; font-weight: 800; cursor: pointer; display: none;
-            box-shadow: 0 8px 20px rgba(52, 211, 153, 0.3); transition: all 0.2s ease;
+            box-shadow: 0 8px 20px rgba(52, 211, 153, 0.3);
         }
-        .btn-export:hover { background: rgba(52, 211, 153, 0.3); transform: translateY(-1px); }
 
+        /* Large Google-Like Modal Map */
         .modal-overlay {
             position: fixed; top: 0; left: 0; right: 0; bottom: 0;
             background: rgba(0,0,0,0.85); backdrop-filter: blur(16px); z-index: 2500;
@@ -271,15 +260,16 @@
             opacity: 0; pointer-events: none; transition: opacity 0.3s ease;
         }
         .modal-overlay.active { opacity: 1; pointer-events: auto; }
+        
         .modal-card {
             background: #0f172a; border: 1px solid var(--border-highlight);
-            border-radius: 28px; width: 90%; max-width: 420px; padding: 28px;
-            display: flex; flex-direction: column; gap: 18px;
+            border-radius: 28px; width: 95%; max-width: 500px; padding: 22px;
+            display: flex; flex-direction: column; gap: 14px;
             box-shadow: 0 35px 70px rgba(0,0,0,0.95);
         }
 
         #singleMapContainer {
-            width: 100%; height: 280px; border-radius: 16px; border: 1px solid var(--border-glass); background: #0b0f19;
+            width: 100%; height: 380px; border-radius: 18px; border: 1px solid var(--border-glass); background: #e2e8f0;
         }
 
         .toast {
@@ -294,7 +284,6 @@
 </head>
 <body>
 
-<!-- Login & Role Selection Screen -->
 <div id="loginScreen">
     <div class="login-card">
         <div class="login-title">RSO Visit Portal</div>
@@ -342,7 +331,7 @@
             <div class="dash-card">
                 <div class="dash-card-title">Daily Visits</div>
                 <div id="dashDailyVisits" class="dash-card-value">0</div>
-                <div class="dash-card-sub" id="dashDailySub">Today's Total</div>
+                <div class="dash-card-sub">Today's Total</div>
             </div>
             <div class="dash-card">
                 <div class="dash-card-title">Month-To-Date (MTD)</div>
@@ -351,7 +340,6 @@
             </div>
         </div>
 
-        <!-- Interactive Route Map Section -->
         <div class="map-section">
             <div class="map-header-title">
                 <svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7"/></svg>
@@ -395,7 +383,7 @@
     <button id="exportBtn" class="btn-export" onclick="exportVisitReport()">Export Visit CSV</button>
 </div>
 
-<!-- Single Retailer Map Location Modal -->
+<!-- Expanded Google-Like Map Modal -->
 <div id="singleMapModal" class="modal-overlay" onclick="closeSingleMapModal()">
     <div class="modal-card" onclick="event.stopPropagation()">
         <div style="display: flex; justify-content: space-between; align-items: center;">
@@ -531,7 +519,6 @@
             const retailerCode = cols[0] || '';
             const rsoCode = cols[1] || 'General';
             
-            // Intelligent coordinate validation fallback
             let lat = parseFloat(cols[2]);
             let lon = parseFloat(cols[3]);
 
@@ -633,9 +620,10 @@
         }
         leafletMap = L.map('mapContainer').setView([23.8103, 90.4125], 13);
         
-        L.tileLayer('https://tiles.openfreemap.org/styles/dark/{z}/{x}/{y}.png', {
+        // Using standard high-availability OpenStreetMap tiles
+        L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
             maxZoom: 19,
-            attribution: '&copy; <a href="https://openfreemap.org">OpenFreeMap</a> &copy; <a href="https://openstreetmap.org">OpenStreetMap</a> contributors'
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
         }).addTo(leafletMap);
 
         mapLayerGroup = L.layerGroup().addTo(leafletMap);
@@ -665,8 +653,8 @@
 
                 const isLatest = (index === rsoVisits.length - 1);
                 const markerHtml = isLatest 
-                    ? `<div style="background:#38bdf8;color:#070913;font-weight:800;font-size:10px;padding:5px 9px;border-radius:14px;border:2px solid #fff;box-shadow:0 0 16px #38bdf8;text-align:center;">CURRENT</div>`
-                    : `<div style="background:#34d399;color:#070913;font-weight:800;font-size:10px;padding:4px 8px;border-radius:10px;border:1px solid #fff;text-align:center;">#${index+1}</div>`;
+                    ? `<div style="background:#0284c7;color:#fff;font-weight:800;font-size:10px;padding:5px 9px;border-radius:14px;border:2px solid #fff;box-shadow:0 0 16px rgba(2,132,199,0.8);text-align:center;">CURRENT</div>`
+                    : `<div style="background:#10b981;color:#fff;font-weight:800;font-size:10px;padding:4px 8px;border-radius:10px;border:1px solid #fff;text-align:center;">#${index+1}</div>`;
 
                 const customIcon = L.divIcon({
                     className: 'custom-map-marker',
@@ -676,14 +664,14 @@
                 });
 
                 const marker = L.marker([store.lat, store.lon], { icon: customIcon });
-                marker.bindPopup(`<div style="color:#0f172a;font-weight:700;"><b>Outlet: ${store.code}</b><br>Number: ${store.number}<br>Time: ${new Date(v.timestamp).toLocaleTimeString()}</div>`);
+                marker.bindPopup(`<b>Outlet: ${store.code}</b><br>Number: ${store.number}<br>Time: ${new Date(v.timestamp).toLocaleTimeString()}`);
                 mapLayerGroup.addLayer(marker);
             }
         });
 
         if (latLngPoints.length > 1) {
             const polyline = L.polyline(latLngPoints, {
-                color: '#818cf8',
+                color: '#6366f1',
                 weight: 5,
                 opacity: 0.9,
                 dashArray: '8, 8'
@@ -707,9 +695,9 @@
         setTimeout(() => {
             if (!singleMap) {
                 singleMap = L.map('singleMapContainer').setView([item.lat, item.lon], 16);
-                L.tileLayer('https://tiles.openfreemap.org/styles/dark/{z}/{x}/{y}.png', {
+                L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
                     maxZoom: 19,
-                    attribution: '&copy; OpenFreeMap'
+                    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
                 }).addTo(singleMap);
             } else {
                 singleMap.invalidateSize();
@@ -718,7 +706,7 @@
             }
 
             singleMapMarker = L.marker([item.lat, item.lon]).addTo(singleMap)
-                .bindPopup(`<div style="color:#0f172a;font-weight:700;">${item.code}</div>`)
+                .bindPopup(`<b>${item.code}</b>`)
                 .openPopup();
         }, 300);
     }
@@ -882,7 +870,7 @@
                 const userLon = position.coords.longitude;
                 const distance = calculateDistanceMeters(userLat, userLon, item.lat, item.lon);
 
-                if (distance <= 50) { // expanded range allowance to 50 meters for GPS accuracy
+                if (distance <= 50) {
                     executeVisitToggle(item, false);
                 } else {
                     alert(`You are not in the location! You are currently ${Math.round(distance)} meters away from the retailer (Max allowed: 50 meters).`);
@@ -929,7 +917,6 @@
         document.getElementById('visitedCount').innerText = `${visited} visited`;
     }
 
-    // Helper alias
     function getFilteredRetailer() { return getFilteredRetailers(); }
 
     function exportVisitReport() {
