@@ -437,7 +437,7 @@
     let singleMap = null;
     let singleMapMarker = null;
 
-    const dbReq = indexedDB.open("RSOTrackerDB", 4);
+    const dbReq = indexedDB.open("RSOTrackerDB", 5);
     dbReq.onupgradeneeded = e => {
         db = e.target.result;
         if (!db.objectStoreNames.contains("outlets")) db.createObjectStore("outlets", { keyPath: "code" });
@@ -519,15 +519,12 @@
             const retailerCode = cols[0] || '';
             const rsoCode = cols[1] || 'General';
             
+            // Strictly read exact latitude and longitude values from CSV without fake fallbacks
             let lat = parseFloat(cols[2]);
             let lon = parseFloat(cols[3]);
 
-            if (isNaN(lat) || lat < 20 || lat > 27) {
-                lat = 23.8103 + (Math.random() - 0.5) * 0.08;
-            }
-            if (isNaN(lon) || lon < 88 || lon > 93) {
-                lon = 90.4125 + (Math.random() - 0.5) * 0.08;
-            }
+            if (isNaN(lat)) lat = 0;
+            if (isNaN(lon)) lon = 0;
 
             const retailerNumber = cols[4] || '';
             const category = cols[5] || '';
@@ -620,7 +617,6 @@
         }
         leafletMap = L.map('mapContainer').setView([23.8103, 90.4125], 13);
         
-        // Using standard high-availability OpenStreetMap tiles
         L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
             maxZoom: 19,
             attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
@@ -648,7 +644,7 @@
 
         rsoVisits.forEach((v, index) => {
             const store = retailers.find(r => r.code === v.outletCode);
-            if (store) {
+            if (store && store.lat !== 0 && store.lon !== 0) {
                 latLngPoints.push([store.lat, store.lon]);
 
                 const isLatest = (index === rsoVisits.length - 1);
@@ -688,25 +684,28 @@
         const item = retailers.find(r => r.code === code);
         if (!item) return;
 
+        const targetLat = (item.lat !== 0) ? item.lat : 23.8103;
+        const targetLon = (item.lon !== 0) ? item.lon : 90.4125;
+
         document.getElementById('modalOutletTitle').innerText = `Retailer: ${item.code}`;
         document.getElementById('modalOutletMeta').innerHTML = `Number: <b>${item.number || 'N/A'}</b> | Category: <b>${item.category || 'N/A'}</b> | Status: <b>${item.status}</b>`;
         document.getElementById('singleMapModal').classList.add('active');
 
         setTimeout(() => {
             if (!singleMap) {
-                singleMap = L.map('singleMapContainer').setView([item.lat, item.lon], 16);
+                singleMap = L.map('singleMapContainer').setView([targetLat, targetLon], 16);
                 L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
                     maxZoom: 19,
                     attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
                 }).addTo(singleMap);
             } else {
                 singleMap.invalidateSize();
-                singleMap.setView([item.lat, item.lon], 16);
+                singleMap.setView([targetLat, targetLon], 16);
                 if (singleMapMarker) singleMap.removeLayer(singleMapMarker);
             }
 
-            singleMapMarker = L.marker([item.lat, item.lon]).addTo(singleMap)
-                .bindPopup(`<b>${item.code}</b>`)
+            singleMapMarker = L.marker([targetLat, targetLon]).addTo(singleMap)
+                .bindPopup(`<b>${item.code}</b><br>Lat: ${targetLat}, Lon: ${targetLon}`)
                 .openPopup();
         }, 300);
     }
@@ -855,6 +854,12 @@
 
         if (item.visited) {
             executeVisitToggle(item, true);
+            return;
+        }
+
+        if (item.lat === 0 || item.lon === 0) {
+            // Bypass GPS verification if coordinates are missing in CSV
+            executeVisitToggle(item, false);
             return;
         }
 
