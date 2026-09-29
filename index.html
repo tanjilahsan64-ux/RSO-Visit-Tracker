@@ -189,7 +189,7 @@
         /* Outlet Card */
         .outlet-card {
             background: var(--surface-card); border: 1px solid var(--border-glass);
-            border-radius: 20px; padding: 20px; margin-bottom: 8px; position: relative; overflow: hidden;
+            border-radius: 20px; padding: 20px; margin-bottom: 12px; position: relative; overflow: hidden;
             backdrop-filter: blur(16px); box-shadow: 0 14px 40px -10px rgba(0,0,0,0.7);
             transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1), border-color 0.25s;
         }
@@ -198,11 +198,20 @@
         .outlet-card.visited { background: rgba(52, 211, 153, 0.06); border-color: rgba(52, 211, 153, 0.35); }
         .outlet-card.visited::before { background: linear-gradient(to bottom, #059669, var(--accent-green)); }
 
-        .outlet-top-row { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 16px; }
+        .outlet-top-row { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 14px; }
         .outlet-code-wrap { display: flex; flex-direction: column; gap: 4px; }
         .outlet-code { font-size: 1.3rem; font-weight: 800; color: #38bdf8; letter-spacing: -0.01em; }
         .rso-badge { font-size: 0.78rem; color: var(--text-secondary); font-weight: 600; }
         .rso-badge strong { color: var(--text-primary); }
+
+        .outlet-actions-top { display: flex; align-items: center; gap: 8px; }
+        .btn-map-icon {
+            background: rgba(56, 189, 248, 0.15); border: 1px solid rgba(56, 189, 248, 0.35);
+            color: #38bdf8; width: 36px; height: 36px; border-radius: 12px; display: flex;
+            align-items: center; justify-content: center; cursor: pointer; transition: all 0.2s ease;
+        }
+        .btn-map-icon:hover { background: rgba(56, 189, 248, 0.3); transform: scale(1.05); }
+        .btn-map-icon svg { width: 18px; height: 18px; stroke: currentColor; }
 
         .details-container {
             display: grid; grid-template-columns: 1fr 1fr; gap: 12px;
@@ -264,9 +273,13 @@
         .modal-overlay.active { opacity: 1; pointer-events: auto; }
         .modal-card {
             background: #0f172a; border: 1px solid var(--border-highlight);
-            border-radius: 28px; width: 90%; max-width: 400px; padding: 32px;
+            border-radius: 28px; width: 90%; max-width: 420px; padding: 28px;
             display: flex; flex-direction: column; gap: 18px;
             box-shadow: 0 35px 70px rgba(0,0,0,0.95);
+        }
+
+        #singleMapContainer {
+            width: 100%; height: 280px; border-radius: 16px; border: 1px solid var(--border-glass); background: #0b0f19;
         }
 
         .toast {
@@ -382,6 +395,19 @@
     <button id="exportBtn" class="btn-export" onclick="exportVisitReport()">Export Visit CSV</button>
 </div>
 
+<!-- Single Retailer Map Location Modal -->
+<div id="singleMapModal" class="modal-overlay" onclick="closeSingleMapModal()">
+    <div class="modal-card" onclick="event.stopPropagation()">
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+            <span id="modalOutletTitle" style="font-weight: 800; font-size: 1.1rem; color: #fff;">Retailer Location</span>
+            <button onclick="closeSingleMapModal()" style="background:none; border:none; color:var(--text-secondary); font-size:1.2rem; cursor:pointer;">✕</button>
+        </div>
+        <div id="singleMapContainer"></div>
+        <div id="modalOutletMeta" style="font-size: 0.82rem; color: var(--text-secondary);"></div>
+        <button class="btn-primary-action" onclick="closeSingleMapModal()">Close Map</button>
+    </div>
+</div>
+
 <!-- Admin Password Authorization Modal -->
 <div id="adminModal" class="modal-overlay" onclick="closeAdminModal()">
     <div class="modal-card" onclick="event.stopPropagation()">
@@ -420,6 +446,8 @@
     let currentUser = null; 
     let leafletMap = null;
     let mapLayerGroup = null;
+    let singleMap = null;
+    let singleMapMarker = null;
 
     const dbReq = indexedDB.open("RSOTrackerDB", 4);
     dbReq.onupgradeneeded = e => {
@@ -498,15 +526,25 @@
             const line = lines[i].trim();
             if (!line) continue;
             const cols = parseCSVLine(line);
-            if (cols.length < 10) continue;
+            if (cols.length < 5) continue;
 
             const retailerCode = cols[0] || '';
             const rsoCode = cols[1] || 'General';
-            const lat = parseFloat(cols[2]) || (23.8103 + (Math.random() - 0.5) * 0.05); 
-            const lon = parseFloat(cols[3]) || (90.4125 + (Math.random() - 0.5) * 0.05);
+            
+            // Intelligent coordinate validation fallback
+            let lat = parseFloat(cols[2]);
+            let lon = parseFloat(cols[3]);
+
+            if (isNaN(lat) || lat < 20 || lat > 27) {
+                lat = 23.8103 + (Math.random() - 0.5) * 0.08;
+            }
+            if (isNaN(lon) || lon < 88 || lon > 93) {
+                lon = 90.4125 + (Math.random() - 0.5) * 0.08;
+            }
+
             const retailerNumber = cols[4] || '';
             const category = cols[5] || '';
-            const status = cols[9] || '';
+            const status = cols[9] || 'Y';
 
             if (retailerCode) {
                 retailers.push({
@@ -658,6 +696,37 @@
         }
     }
 
+    function openSingleOutletMap(code) {
+        const item = retailers.find(r => r.code === code);
+        if (!item) return;
+
+        document.getElementById('modalOutletTitle').innerText = `Retailer: ${item.code}`;
+        document.getElementById('modalOutletMeta').innerHTML = `Number: <b>${item.number || 'N/A'}</b> | Category: <b>${item.category || 'N/A'}</b> | Status: <b>${item.status}</b>`;
+        document.getElementById('singleMapModal').classList.add('active');
+
+        setTimeout(() => {
+            if (!singleMap) {
+                singleMap = L.map('singleMapContainer').setView([item.lat, item.lon], 16);
+                L.tileLayer('https://tiles.openfreemap.org/styles/dark/{z}/{x}/{y}.png', {
+                    maxZoom: 19,
+                    attribution: '&copy; OpenFreeMap'
+                }).addTo(singleMap);
+            } else {
+                singleMap.invalidateSize();
+                singleMap.setView([item.lat, item.lon], 16);
+                if (singleMapMarker) singleMap.removeLayer(singleMapMarker);
+            }
+
+            singleMapMarker = L.marker([item.lat, item.lon]).addTo(singleMap)
+                .bindPopup(`<div style="color:#0f172a;font-weight:700;">${item.code}</div>`)
+                .openPopup();
+        }, 300);
+    }
+
+    function closeSingleMapModal() {
+        document.getElementById('singleMapModal').classList.remove('active');
+    }
+
     function getFilteredRetailers() {
         if (!currentUser) return [];
         const searchVal = document.getElementById('searchInput').value.toLowerCase().trim();
@@ -763,8 +832,11 @@
                         <div class="outlet-code">${escapeHtml(item.code)}</div>
                         <span class="rso-badge">Assigned RSO: <strong>${escapeHtml(item.rsoCode)}</strong></span>
                     </div>
-                    <div>
-                        <span class="status-badge-inline ${statusClass}">STATUS: ${escapeHtml(item.status)}</span>
+                    <div class="outlet-actions-top">
+                        <button class="btn-map-icon" title="View Location on Map" onclick="openSingleOutletMap('${escapeHtml(item.code)}')">
+                            <svg fill="none" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                        </button>
+                        <span class="status-badge-inline ${statusClass}">${escapeHtml(item.status)}</span>
                     </div>
                 </div>
 
@@ -810,10 +882,10 @@
                 const userLon = position.coords.longitude;
                 const distance = calculateDistanceMeters(userLat, userLon, item.lat, item.lon);
 
-                if (distance <= 20) {
+                if (distance <= 50) { // expanded range allowance to 50 meters for GPS accuracy
                     executeVisitToggle(item, false);
                 } else {
-                    alert(`You are not in the location! You are currently ${Math.round(distance)} meters away from the retailer (Max allowed: 20 meters).`);
+                    alert(`You are not in the location! You are currently ${Math.round(distance)} meters away from the retailer (Max allowed: 50 meters).`);
                 }
             },
             () => { alert("Unable to retrieve your GPS position. Please enable location permissions."); },
@@ -851,11 +923,14 @@
     }
 
     function updateCounters() {
-        const filtered = getFilteredRetailers();
+        const filtered = getFilteredRetailer();
         const visited = filtered.filter(r => r.visited).length;
         document.getElementById('retailerCount').innerText = `${filtered.length} Outlets`;
         document.getElementById('visitedCount').innerText = `${visited} visited`;
     }
+
+    // Helper alias
+    function getFilteredRetailer() { return getFilteredRetailers(); }
 
     function exportVisitReport() {
         if (currentUser.role !== 'admin') {
