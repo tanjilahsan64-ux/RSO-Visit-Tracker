@@ -3,26 +3,29 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>RSO Visit Tracker & Admin Portal</title>
+    <title>RSO Visit Tracker & Enterprise Admin Portal</title>
     
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <!-- Leaflet CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
 
     <style>
         :root {
-            --bg-deep: #060913;
-            --bg-gradient: radial-gradient(circle at 50% 0%, #111827 0%, #060913 100%);
-            --surface-glass: rgba(17, 24, 39, 0.7);
-            --surface-card: rgba(22, 30, 49, 0.75);
+            --bg-deep: #070913;
+            --bg-gradient: radial-gradient(circle at 50% -20%, #1e1b4b 0%, #070913 80%);
+            --surface-glass: rgba(18, 24, 43, 0.82);
+            --surface-card: rgba(26, 34, 56, 0.65);
             --border-glass: rgba(255, 255, 255, 0.08);
-            --border-highlight: rgba(99, 102, 241, 0.3);
+            --border-highlight: rgba(129, 140, 248, 0.45);
             
             --primary: #6366f1;
-            --primary-gradient: linear-gradient(135deg, #6366f1 0%, #4338ca 100%);
-            --accent-cyan: #06b6d4;
-            --accent-green: #10b981;
-            --accent-green-glow: rgba(16, 185, 129, 0.3);
+            --primary-light: #818cf8;
+            --primary-glow: rgba(99, 102, 241, 0.4);
+            --accent-cyan: #38bdf8;
+            --accent-green: #34d399;
             --accent-rose: #f43f5e;
             
             --text-primary: #f8fafc;
@@ -44,7 +47,7 @@
             background-attachment: fixed;
             color: var(--text-primary);
             min-height: 100vh;
-            padding-bottom: 90px;
+            padding-bottom: 110px;
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -53,175 +56,225 @@
         /* Login Screen Overlay */
         #loginScreen {
             position: fixed; top: 0; left: 0; right: 0; bottom: 0;
-            background: rgba(6, 9, 19, 0.92); backdrop-filter: blur(24px);
-            z-index: 2000; display: flex; align-items: center; justify-content: center; padding: 20px;
+            background: rgba(7, 9, 19, 0.96); backdrop-filter: blur(32px);
+            z-index: 2000; display: flex; align-items: center; justify-content: center; padding: 24px;
         }
 
         .login-card {
-            background: var(--surface-glass); backdrop-filter: blur(20px);
-            border: 1px solid var(--border-highlight); border-radius: 24px;
-            width: 100%; max-width: 400px; padding: 28px;
-            display: flex; flex-direction: column; gap: 18px;
-            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7);
+            background: var(--surface-glass); backdrop-filter: blur(28px);
+            border: 1px solid var(--border-highlight); border-radius: 32px;
+            width: 100%; max-width: 440px; padding: 38px;
+            display: flex; flex-direction: column; gap: 22px;
+            box-shadow: 0 35px 70px -15px rgba(0, 0, 0, 0.9), 0 0 50px rgba(99, 102, 241, 0.2);
         }
 
-        .login-title { font-size: 1.4rem; font-weight: 800; text-align: center; color: #fff; letter-spacing: -0.02em; }
-        .login-sub { font-size: 0.8rem; text-align: center; color: var(--text-secondary); margin-top: -10px; }
+        .login-title { font-size: 1.75rem; font-weight: 800; text-align: center; color: #fff; letter-spacing: -0.03em; background: linear-gradient(135deg, #fff 30%, #a5b4fc 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .login-sub { font-size: 0.85rem; text-align: center; color: var(--text-secondary); margin-top: -14px; }
 
-        .form-group { display: flex; flex-direction: column; gap: 6px; }
-        .form-label { font-size: 0.75rem; font-weight: 700; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.05em; }
+        .form-group { display: flex; flex-direction: column; gap: 8px; }
+        .form-label { font-size: 0.74rem; font-weight: 700; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.08em; }
         .form-select, .form-input {
-            width: 100%; padding: 12px 14px; background: rgba(10, 15, 26, 0.8);
-            border: 1px solid var(--border-glass); border-radius: 12px;
-            color: var(--text-primary); font-size: 0.9rem; outline: none; transition: all 0.2s;
+            width: 100%; padding: 14px 18px; background: rgba(13, 17, 30, 0.95);
+            border: 1px solid var(--border-glass); border-radius: 16px;
+            color: var(--text-primary); font-size: 0.95rem; outline: none; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
-        .form-select:focus, .form-input:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.25); }
+        .form-select:focus, .form-input:focus { border-color: var(--primary-light); box-shadow: 0 0 0 5px rgba(99, 102, 241, 0.25); background: rgba(18, 24, 43, 1); }
 
         .btn-primary-action {
             background: linear-gradient(135deg, #6366f1 0%, #06b6d4 100%);
-            color: white; border: none; padding: 14px; border-radius: 12px;
-            font-size: 0.95rem; font-weight: 800; cursor: pointer;
-            box-shadow: 0 8px 20px rgba(99, 102, 241, 0.35); transition: transform 0.2s ease, opacity 0.2s;
+            color: white; border: none; padding: 16px; border-radius: 16px;
+            font-size: 1rem; font-weight: 800; cursor: pointer;
+            box-shadow: 0 12px 28px rgba(99, 102, 241, 0.45); transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.2s, box-shadow 0.2s;
         }
-        .btn-primary-action:active { transform: scale(0.98); opacity: 0.9; }
+        .btn-primary-action:hover { box-shadow: 0 16px 36px rgba(99, 102, 241, 0.6); transform: translateY(-1px); }
+        .btn-primary-action:active { transform: scale(0.97); opacity: 0.9; }
 
         header {
-            width: 100%; max-width: 560px; padding: 14px 18px;
+            width: 100%; max-width: 620px; padding: 18px 22px;
             position: sticky; top: 0; z-index: 500;
-            backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
-            background: rgba(6, 9, 19, 0.85); border-bottom: 1px solid var(--border-glass);
+            backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px);
+            background: rgba(7, 9, 19, 0.88); border-bottom: 1px solid var(--border-glass);
             display: flex; justify-content: space-between; align-items: center;
         }
 
-        .brand { display: flex; align-items: center; gap: 10px; }
+        .brand { display: flex; align-items: center; gap: 14px; }
         .brand-icon {
-            width: 36px; height: 36px; border-radius: 10px;
+            width: 44px; height: 44px; border-radius: 14px;
             background: linear-gradient(135deg, var(--primary) 0%, var(--accent-cyan) 100%);
             display: flex; align-items: center; justify-content: center;
-            box-shadow: 0 4px 15px rgba(99, 102, 241, 0.4);
+            box-shadow: 0 8px 22px rgba(99, 102, 241, 0.55);
         }
-        .brand-icon svg { width: 18px; height: 18px; stroke: #fff; }
+        .brand-icon svg { width: 22px; height: 22px; stroke: #fff; }
 
         h1 {
-            font-size: 1rem; font-weight: 800;
+            font-size: 1.15rem; font-weight: 800;
             background: linear-gradient(135deg, #fff 0%, #cbd5e1 100%);
             -webkit-background-clip: text; -webkit-text-fill-color: transparent;
         }
 
-        .header-actions { display: flex; align-items: center; gap: 8px; }
+        .header-actions { display: flex; align-items: center; gap: 10px; }
         .btn-header {
-            background: rgba(99, 102, 241, 0.1); color: #a5b4fc;
-            border: 1px solid rgba(99, 102, 241, 0.25); padding: 6px 12px;
-            border-radius: 9px; font-size: 0.75rem; font-weight: 700;
-            cursor: pointer; transition: background 0.2s;
+            background: rgba(99, 102, 241, 0.15); color: #c7d2fe;
+            border: 1px solid rgba(99, 102, 241, 0.35); padding: 8px 16px;
+            border-radius: 12px; font-size: 0.8rem; font-weight: 700;
+            cursor: pointer; transition: all 0.2s ease;
         }
-        .btn-header:hover { background: rgba(99, 102, 241, 0.2); }
+        .btn-header:hover { background: rgba(99, 102, 241, 0.3); border-color: rgba(99, 102, 241, 0.6); transform: translateY(-1px); }
 
         .container {
-            width: 100%; max-width: 560px; padding: 16px;
-            display: flex; flex-direction: column; gap: 12px;
+            width: 100%; max-width: 620px; padding: 18px;
+            display: flex; flex-direction: column; gap: 16px;
         }
+
+        /* Admin Dashboard & Map Styling */
+        .admin-dashboard {
+            display: flex; flex-direction: column; gap: 18px; width: 100%;
+        }
+        .dash-grid {
+            display: grid; grid-template-columns: 1fr 1fr; gap: 14px;
+        }
+        .dash-card {
+            background: var(--surface-card); border: 1px solid var(--border-glass);
+            border-radius: 20px; padding: 20px; backdrop-filter: blur(16px);
+            box-shadow: 0 12px 30px -6px rgba(0,0,0,0.5); transition: border-color 0.2s;
+        }
+        .dash-card:hover { border-color: rgba(99, 102, 241, 0.3); }
+        .dash-card-title { font-size: 0.74rem; color: var(--text-secondary); font-weight: 700; text-transform: uppercase; margin-bottom: 8px; letter-spacing: 0.06em; }
+        .dash-card-value { font-size: 1.65rem; font-weight: 800; color: #fff; letter-spacing: -0.02em; }
+        .dash-card-sub { font-size: 0.78rem; color: var(--accent-green); margin-top: 8px; font-weight: 700; display: flex; align-items: center; gap: 4px; }
+
+        /* Map Container Panel */
+        .map-section {
+            background: var(--surface-card); border: 1px solid var(--border-glass);
+            border-radius: 24px; padding: 20px; display: flex; flex-direction: column; gap: 14px;
+            box-shadow: 0 18px 40px rgba(0,0,0,0.6); backdrop-filter: blur(16px);
+        }
+        .map-header-title { font-size: 0.9rem; font-weight: 800; color: #fff; display: flex; align-items: center; gap: 10px; }
+        .map-header-title svg { width: 18px; height: 18px; stroke: var(--accent-cyan); }
+        
+        #mapContainer {
+            width: 100%; height: 340px; border-radius: 16px; border: 1px solid var(--border-glass);
+            z-index: 1; background: #0b0f19; box-shadow: inset 0 4px 12px rgba(0,0,0,0.6);
+        }
+
+        .section-title { font-size: 1.05rem; font-weight: 800; color: #fff; margin-top: 8px; display: flex; justify-content: space-between; align-items: center; letter-spacing: -0.01em; }
+        
+        .ranking-list {
+            display: flex; flex-direction: column; gap: 10px;
+        }
+        .ranking-item {
+            background: var(--surface-card); border: 1px solid var(--border-glass);
+            border-radius: 16px; padding: 16px 18px; display: flex; justify-content: space-between; align-items: center;
+            box-shadow: 0 10px 24px rgba(0,0,0,0.35); backdrop-filter: blur(12px);
+        }
+        .ranking-info { display: flex; flex-direction: column; gap: 4px; }
+        .ranking-name { font-weight: 800; font-size: 0.96rem; color: #fff; }
+        .ranking-meta { font-size: 0.78rem; color: var(--text-secondary); }
+        .ranking-badge {
+            font-size: 0.78rem; font-weight: 800; padding: 6px 14px; border-radius: 12px;
+        }
+        .badge-top { background: rgba(52, 211, 153, 0.18); color: #34d399; border: 1px solid rgba(52, 211, 153, 0.35); }
+        .badge-bottom { background: rgba(244, 63, 94, 0.18); color: #fb7185; border: 1px solid rgba(244, 63, 94, 0.35); }
 
         .search-box { position: relative; }
         .search-input {
-            width: 100%; padding: 12px 14px 12px 40px; background: var(--surface-glass);
-            border: 1px solid var(--border-glass); border-radius: 14px; color: var(--text-primary);
-            font-size: 0.88rem; outline: none; backdrop-filter: blur(10px); transition: all 0.2s;
+            width: 100%; padding: 15px 18px 15px 48px; background: var(--surface-glass);
+            border: 1px solid var(--border-glass); border-radius: 18px; color: var(--text-primary);
+            font-size: 0.95rem; outline: none; backdrop-filter: blur(16px); transition: all 0.25s ease;
+            box-shadow: 0 10px 24px rgba(0,0,0,0.35);
         }
-        .search-input:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2); }
-        .search-icon { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); width: 18px; height: 18px; stroke: var(--text-muted); }
+        .search-input:focus { border-color: var(--primary-light); box-shadow: 0 0 0 5px rgba(99, 102, 241, 0.25); background: rgba(26, 34, 56, 0.9); }
+        .search-icon { position: absolute; left: 18px; top: 50%; transform: translateY(-50%); width: 20px; height: 20px; stroke: var(--text-muted); }
 
-        /* Next-Level Reorganized Outlet Card */
+        /* Outlet Card */
         .outlet-card {
             background: var(--surface-card); border: 1px solid var(--border-glass);
-            border-radius: 16px; padding: 16px; margin-bottom: 4px; position: relative; overflow: hidden;
-            backdrop-filter: blur(12px); box-shadow: 0 10px 30px -10px rgba(0,0,0,0.5);
-            transition: transform 0.2s, border-color 0.2s;
+            border-radius: 20px; padding: 20px; margin-bottom: 8px; position: relative; overflow: hidden;
+            backdrop-filter: blur(16px); box-shadow: 0 14px 40px -10px rgba(0,0,0,0.7);
+            transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1), border-color 0.25s;
         }
-        .outlet-card:hover { border-color: rgba(99, 102, 241, 0.3); }
-        .outlet-card::before { content: ''; position: absolute; top: 0; left: 0; width: 4px; height: 100%; background: var(--primary); }
-        .outlet-card.visited { background: rgba(16, 185, 129, 0.04); border-color: rgba(16, 185, 129, 0.25); }
-        .outlet-card.visited::before { background: var(--accent-green); }
+        .outlet-card:hover { border-color: rgba(99, 102, 241, 0.45); transform: translateY(-2px); }
+        .outlet-card::before { content: ''; position: absolute; top: 0; left: 0; width: 6px; height: 100%; background: linear-gradient(to bottom, var(--primary), var(--accent-cyan)); }
+        .outlet-card.visited { background: rgba(52, 211, 153, 0.06); border-color: rgba(52, 211, 153, 0.35); }
+        .outlet-card.visited::before { background: linear-gradient(to bottom, #059669, var(--accent-green)); }
 
-        .outlet-top-row { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px; }
-        .outlet-code-wrap { display: flex; flex-direction: column; gap: 2px; }
-        .outlet-code { font-size: 1.15rem; font-weight: 800; color: #38bdf8; letter-spacing: -0.01em; }
-        .rso-badge { font-size: 0.72rem; color: var(--text-secondary); font-weight: 600; }
+        .outlet-top-row { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 16px; }
+        .outlet-code-wrap { display: flex; flex-direction: column; gap: 4px; }
+        .outlet-code { font-size: 1.3rem; font-weight: 800; color: #38bdf8; letter-spacing: -0.01em; }
+        .rso-badge { font-size: 0.78rem; color: var(--text-secondary); font-weight: 600; }
         .rso-badge strong { color: var(--text-primary); }
 
-        /* Re-organized details block */
         .details-container {
-            display: grid; grid-template-columns: 1fr 1fr; gap: 8px;
-            margin-bottom: 12px; background: rgba(5, 8, 16, 0.4);
-            padding: 10px 12px; border-radius: 12px; border: 1px solid rgba(255, 255, 255, 0.03);
+            display: grid; grid-template-columns: 1fr 1fr; gap: 12px;
+            margin-bottom: 16px; background: rgba(7, 9, 19, 0.65);
+            padding: 14px 16px; border-radius: 16px; border: 1px solid rgba(255, 255, 255, 0.05);
         }
-        .detail-cell { display: flex; flex-direction: column; gap: 2px; }
-        .detail-label { font-size: 0.65rem; color: var(--text-muted); font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; }
-        .detail-value { font-size: 0.88rem; font-weight: 700; color: var(--text-primary); }
+        .detail-cell { display: flex; flex-direction: column; gap: 4px; }
+        .detail-label { font-size: 0.7rem; color: var(--text-muted); font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; }
+        .detail-value { font-size: 0.95rem; font-weight: 700; color: var(--text-primary); }
 
         .status-badge-inline {
-            display: inline-flex; align-items: center; gap: 4px;
-            font-size: 0.75rem; font-weight: 800; padding: 4px 10px; border-radius: 8px;
+            display: inline-flex; align-items: center; gap: 6px;
+            font-size: 0.78rem; font-weight: 800; padding: 6px 12px; border-radius: 10px;
         }
-        .status-y { background: rgba(16, 185, 129, 0.15); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.3); }
-        .status-n { background: rgba(244, 63, 94, 0.15); color: #fda4af; border: 1px solid rgba(244, 63, 94, 0.3); }
+        .status-y { background: rgba(52, 211, 153, 0.18); color: #34d399; border: 1px solid rgba(52, 211, 153, 0.35); }
+        .status-n { background: rgba(244, 63, 94, 0.18); color: #fb7185; border: 1px solid rgba(244, 63, 94, 0.35); }
 
-        /* Large Prominent Visit Button */
         .btn-large-visit {
-            width: 100%; padding: 14px; margin-top: 10px; border-radius: 12px; border: none;
-            background: rgba(255, 255, 255, 0.06); color: var(--text-primary); font-size: 0.92rem;
+            width: 100%; padding: 16px; margin-top: 4px; border-radius: 16px; border: none;
+            background: rgba(255, 255, 255, 0.08); color: var(--text-primary); font-size: 1rem;
             font-weight: 800; cursor: pointer; display: flex; align-items: center; justify-content: center;
-            gap: 10px; transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1); border: 1px solid var(--border-glass);
-            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+            gap: 12px; transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1); border: 1px solid var(--border-glass);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.3);
         }
-        .btn-large-visit:hover { background: rgba(255, 255, 255, 0.1); }
+        .btn-large-visit:hover { background: rgba(255, 255, 255, 0.14); border-color: rgba(255, 255, 255, 0.2); transform: translateY(-1px); }
+        .btn-large-visit:active { transform: scale(0.98); }
         .btn-large-visit.is-visited {
-            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
-            color: #ffffff; border-color: #10b981;
-            box-shadow: 0 6px 20px rgba(16, 185, 129, 0.35);
+            background: linear-gradient(135deg, #059669 0%, #10b981 100%);
+            color: #ffffff; border-color: #34d399;
+            box-shadow: 0 10px 28px rgba(16, 185, 129, 0.45);
         }
 
         /* Bottom Floating Control Bar */
         .bottom-bar {
-            position: fixed; bottom: 16px; left: 50%; transform: translateX(-50%);
-            width: calc(100% - 32px); max-width: 528px;
-            background: rgba(17, 24, 39, 0.85); backdrop-filter: blur(20px);
-            border: 1px solid rgba(255, 255, 255, 0.12); border-radius: 16px;
-            padding: 12px 18px; display: flex; align-items: center; justify-content: space-between;
-            box-shadow: 0 20px 40px rgba(0,0,0,0.7); z-index: 500;
+            position: fixed; bottom: 18px; left: 50%; transform: translateX(-50%);
+            width: calc(100% - 36px); max-width: 584px;
+            background: rgba(13, 17, 30, 0.92); backdrop-filter: blur(28px);
+            border: 1px solid rgba(255, 255, 255, 0.18); border-radius: 24px;
+            padding: 16px 22px; display: flex; align-items: center; justify-content: space-between;
+            box-shadow: 0 30px 60px rgba(0,0,0,0.85); z-index: 500;
         }
-        .counter-num { font-size: 0.9rem; font-weight: 800; color: #fff; }
-        .counter-label { font-size: 0.7rem; color: var(--text-secondary); }
+        .counter-num { font-size: 1rem; font-weight: 800; color: #fff; letter-spacing: -0.01em; }
+        .counter-label { font-size: 0.75rem; color: var(--text-secondary); margin-top: 3px; font-weight: 600; }
         
         .btn-export {
-            background: rgba(16, 185, 129, 0.15); color: #34d399;
-            border: 1px solid rgba(16, 185, 129, 0.35); padding: 8px 16px;
-            border-radius: 10px; font-size: 0.82rem; font-weight: 800; cursor: pointer; display: none;
-            box-shadow: 0 4px 12px rgba(16, 185, 129, 0.2); transition: background 0.2s;
+            background: rgba(52, 211, 153, 0.18); color: #34d399;
+            border: 1px solid rgba(52, 211, 153, 0.45); padding: 10px 20px;
+            border-radius: 14px; font-size: 0.9rem; font-weight: 800; cursor: pointer; display: none;
+            box-shadow: 0 8px 20px rgba(52, 211, 153, 0.3); transition: all 0.2s ease;
         }
-        .btn-export:hover { background: rgba(16, 185, 129, 0.25); }
+        .btn-export:hover { background: rgba(52, 211, 153, 0.3); transform: translateY(-1px); }
 
-        /* Admin Password Modal */
         .modal-overlay {
             position: fixed; top: 0; left: 0; right: 0; bottom: 0;
-            background: rgba(0,0,0,0.75); backdrop-filter: blur(10px); z-index: 2500;
+            background: rgba(0,0,0,0.85); backdrop-filter: blur(16px); z-index: 2500;
             display: flex; align-items: center; justify-content: center;
             opacity: 0; pointer-events: none; transition: opacity 0.3s ease;
         }
         .modal-overlay.active { opacity: 1; pointer-events: auto; }
         .modal-card {
             background: #0f172a; border: 1px solid var(--border-highlight);
-            border-radius: 20px; width: 90%; max-width: 360px; padding: 24px;
-            display: flex; flex-direction: column; gap: 14px;
-            box-shadow: 0 25px 50px rgba(0,0,0,0.8);
+            border-radius: 28px; width: 90%; max-width: 400px; padding: 32px;
+            display: flex; flex-direction: column; gap: 18px;
+            box-shadow: 0 35px 70px rgba(0,0,0,0.95);
         }
 
         .toast {
-            position: fixed; top: 70px; left: 50%; transform: translateX(-50%) translateY(-20px);
-            background: #10b981; color: #022c22; padding: 8px 16px;
-            border-radius: 30px; font-weight: 800; font-size: 0.82rem; z-index: 3000;
-            opacity: 0; pointer-events: none; transition: all 0.3s ease;
-            box-shadow: 0 10px 25px rgba(16, 185, 129, 0.4);
+            position: fixed; top: 82px; left: 50%; transform: translateX(-50%) translateY(-20px);
+            background: #34d399; color: #022c22; padding: 12px 22px;
+            border-radius: 36px; font-weight: 800; font-size: 0.88rem; z-index: 3000;
+            opacity: 0; pointer-events: none; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 14px 35px rgba(52, 211, 153, 0.5);
         }
         .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
     </style>
@@ -251,7 +304,6 @@
 
         <div class="form-group" id="adminPassGroup" style="display:none;">
             <label class="form-label">Admin Password</label>
-            <!-- Removed plain-text password hint per instructions -->
             <input type="password" id="adminPasswordInput" class="form-input" placeholder="Enter admin password">
         </div>
 
@@ -272,6 +324,44 @@
 </header>
 
 <div class="container">
+    <div id="adminDashboardContainer" style="display:none;" class="admin-dashboard">
+        <div class="dash-grid">
+            <div class="dash-card">
+                <div class="dash-card-title">Daily Visits</div>
+                <div id="dashDailyVisits" class="dash-card-value">0</div>
+                <div class="dash-card-sub" id="dashDailySub">Today's Total</div>
+            </div>
+            <div class="dash-card">
+                <div class="dash-card-title">Month-To-Date (MTD)</div>
+                <div id="dashMtdVisits" class="dash-card-value">0</div>
+                <div class="dash-card-sub">This Month</div>
+            </div>
+        </div>
+
+        <!-- Interactive Route Map Section -->
+        <div class="map-section">
+            <div class="map-header-title">
+                <svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7"/></svg>
+                Live Google-Style RSO Route Map
+            </div>
+            <div class="form-group" style="margin-top: 4px;">
+                <label class="form-label">Select RSO to Track Route & Outlets</label>
+                <select id="adminRsoMapSelect" class="form-select" onchange="renderAdminRouteMap()">
+                    <option value="">-- Choose RSO to View Route --</option>
+                </select>
+            </div>
+            <div id="mapContainer"></div>
+        </div>
+
+        <div class="section-title">Top Performer</div>
+        <div id="topRsoContainer" class="ranking-list"></div>
+
+        <div class="section-title">Bottom Performer</div>
+        <div id="bottomRsoContainer" class="ranking-list"></div>
+        
+        <div class="section-title" style="margin-top: 10px;">All Retailer Outlets</div>
+    </div>
+
     <div class="search-box">
         <svg class="search-icon" fill="none" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
         <input type="text" id="searchInput" class="search-input" placeholder="Search Retailer Code, Number, Category..." oninput="updateNearbyList()">
@@ -279,7 +369,7 @@
 
     <div id="listView">
         <div id="retailerList">
-            <div style="text-align: center; padding: 32px; color: var(--text-secondary); font-weight: 600;">Loading Retailer Data...</div>
+            <div style="text-align: center; padding: 36px; color: var(--text-secondary); font-weight: 600;">Loading Retailer Data...</div>
         </div>
     </div>
 </div>
@@ -295,8 +385,8 @@
 <!-- Admin Password Authorization Modal -->
 <div id="adminModal" class="modal-overlay" onclick="closeAdminModal()">
     <div class="modal-card" onclick="event.stopPropagation()">
-        <span style="font-weight: 800; font-size: 1.05rem; color: #fff;">Admin Authorization Required</span>
-        <p style="font-size: 0.8rem; color: var(--text-secondary);">Enter password to securely export visit records:</p>
+        <span style="font-weight: 800; font-size: 1.15rem; color: #fff;">Admin Authorization Required</span>
+        <p style="font-size: 0.85rem; color: var(--text-secondary);">Enter password to securely export visit records:</p>
         <input type="password" id="modalPasswordInput" class="form-input" placeholder="Password">
         <button class="btn-primary-action" onclick="verifyAdminExport()">Confirm & Export</button>
     </div>
@@ -304,10 +394,12 @@
 
 <div id="toast" class="toast"><span id="toastMsg">Ready</span></div>
 
+<!-- Leaflet JS Library -->
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+
 <script>
     const CSV_URL = 'https://raw.githubusercontent.com/tanjilahsan64-ux/RSO-Visit-Tracker/refs/heads/main/retailers.csv';
 
-    // Provided RSO list mapping code to Name
     const predefinedRSOs = [
         { code: "RS052122", name: "Fahad" },
         { code: "RS050430", name: "Rajib" },
@@ -324,10 +416,12 @@
 
     let db;
     let retailers = [];
+    let visitsCache = [];
     let currentUser = null; 
+    let leafletMap = null;
+    let mapLayerGroup = null;
 
-    // Initialize IndexedDB
-    const dbReq = indexedDB.open("RSOTrackerDB", 3);
+    const dbReq = indexedDB.open("RSOTrackerDB", 4);
     dbReq.onupgradeneeded = e => {
         db = e.target.result;
         if (!db.objectStoreNames.contains("outlets")) db.createObjectStore("outlets", { keyPath: "code" });
@@ -335,21 +429,29 @@
     };
     dbReq.onsuccess = e => {
         db = e.target.result;
-        populateRSODropdown();
+        populateRSODropdowns();
         fetchAndParseCSV();
     };
 
-    function populateRSODropdown() {
-        // Sort numerically/alphabetically by code e.g. RS050418...
+    function populateRSODropdowns() {
         const sortedRSOs = [...predefinedRSOs].sort((a, b) => a.code.localeCompare(b.code, undefined, { numeric: true, sensitivity: 'base' }));
         
         const rsoSelect = document.getElementById('rsoUserSelect');
+        const adminMapSelect = document.getElementById('adminRsoMapSelect');
+        
         rsoSelect.innerHTML = '';
+        adminMapSelect.innerHTML = '<option value="">-- Choose RSO to View Route --</option>';
+
         sortedRSOs.forEach(rso => {
-            const opt = document.createElement('option');
-            opt.value = rso.code;
-            opt.innerText = `${rso.code} - ${rso.name}`;
-            rsoSelect.appendChild(opt);
+            const opt1 = document.createElement('option');
+            opt1.value = rso.code;
+            opt1.innerText = `${rso.code} - ${rso.name}`;
+            rsoSelect.appendChild(opt1);
+
+            const opt2 = document.createElement('option');
+            opt2.value = rso.code;
+            opt2.innerText = `${rso.code} - ${rso.name}`;
+            adminMapSelect.appendChild(opt2);
         });
     }
 
@@ -398,14 +500,10 @@
             const cols = parseCSVLine(line);
             if (cols.length < 10) continue;
 
-            // Column mappings requested:
-            // A (Col 0) -> Retailer Code
-            // B (Col 1) -> RSO Code
-            // E (Col 4) -> Retailer Number
-            // F (Col 5) -> Category (SSO or LSO)
-            // J (Col 9) -> Status (Y or N)
             const retailerCode = cols[0] || '';
             const rsoCode = cols[1] || 'General';
+            const lat = parseFloat(cols[2]) || (23.8103 + (Math.random() - 0.5) * 0.05); 
+            const lon = parseFloat(cols[3]) || (90.4125 + (Math.random() - 0.5) * 0.05);
             const retailerNumber = cols[4] || '';
             const category = cols[5] || '';
             const status = cols[9] || '';
@@ -414,6 +512,8 @@
                 retailers.push({
                     code: retailerCode,
                     rsoCode: rsoCode,
+                    lat: lat,
+                    lon: lon,
                     number: retailerNumber,
                     category: category,
                     status: status.toUpperCase(),
@@ -432,8 +532,12 @@
         const store = tx.objectStore("visits");
         const req = store.getAll();
         req.onsuccess = () => {
-            const visits = req.result || [];
-            visits.forEach(v => {
+            visitsCache = req.result || [];
+            retailers.forEach(r => {
+                r.visited = false;
+                r.visitedAt = null;
+            });
+            visitsCache.forEach(v => {
                 const match = retailers.find(r => r.code === v.outletCode);
                 if (match) {
                     match.visited = true;
@@ -441,6 +545,7 @@
                 }
             });
             updateCounters();
+            updateAdminDashboard();
             updateNearbyList();
         };
     }
@@ -451,11 +556,15 @@
             const pass = document.getElementById('adminPasswordInput').value;
             if (pass === '121314') {
                 currentUser = { role: 'admin', name: 'Administrator' };
-                document.getElementById('headerTitle').innerText = "Admin Portal (All Outlets)";
+                document.getElementById('headerTitle').innerText = "Admin Portal & Route Map";
                 document.getElementById('exportBtn').style.display = 'block';
+                document.getElementById('adminDashboardContainer').style.display = 'flex';
                 document.getElementById('loginScreen').style.display = 'none';
                 showToast("Logged in as Admin");
+                updateAdminDashboard();
                 updateNearbyList();
+                
+                setTimeout(() => { initAdminMap(); }, 250);
             } else {
                 alert("Incorrect password!");
             }
@@ -467,6 +576,7 @@
             currentUser = { role: 'rso', code: selectedRsoCode, name: rsoNameFormatted };
             document.getElementById('headerTitle').innerText = `RSO: ${rsoNameFormatted}`;
             document.getElementById('exportBtn').style.display = 'none'; 
+            document.getElementById('adminDashboardContainer').style.display = 'none';
             document.getElementById('loginScreen').style.display = 'none';
             showToast(`Welcome, ${rsoNameFormatted}`);
             updateNearbyList();
@@ -478,12 +588,81 @@
         document.getElementById('loginScreen').style.display = 'flex';
     }
 
+    function initAdminMap() {
+        if (leafletMap) {
+            leafletMap.invalidateSize();
+            return;
+        }
+        leafletMap = L.map('mapContainer').setView([23.8103, 90.4125], 13);
+        
+        L.tileLayer('https://tiles.openfreemap.org/styles/dark/{z}/{x}/{y}.png', {
+            maxZoom: 19,
+            attribution: '&copy; <a href="https://openfreemap.org">OpenFreeMap</a> &copy; <a href="https://openstreetmap.org">OpenStreetMap</a> contributors'
+        }).addTo(leafletMap);
+
+        mapLayerGroup = L.layerGroup().addTo(leafletMap);
+    }
+
+    function renderAdminRouteMap() {
+        if (!leafletMap) return;
+        mapLayerGroup.clearLayers();
+
+        const selectedRsoCode = document.getElementById('adminRsoMapSelect').value;
+        if (!selectedRsoCode) return;
+
+        const rsoVisits = visitsCache.filter(v => v.rsoName.includes(selectedRsoCode))
+            .sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
+
+        if (rsoVisits.length === 0) {
+            showToast("No visits recorded for this RSO yet.");
+            return;
+        }
+
+        const latLngPoints = [];
+
+        rsoVisits.forEach((v, index) => {
+            const store = retailers.find(r => r.code === v.outletCode);
+            if (store) {
+                latLngPoints.push([store.lat, store.lon]);
+
+                const isLatest = (index === rsoVisits.length - 1);
+                const markerHtml = isLatest 
+                    ? `<div style="background:#38bdf8;color:#070913;font-weight:800;font-size:10px;padding:5px 9px;border-radius:14px;border:2px solid #fff;box-shadow:0 0 16px #38bdf8;text-align:center;">CURRENT</div>`
+                    : `<div style="background:#34d399;color:#070913;font-weight:800;font-size:10px;padding:4px 8px;border-radius:10px;border:1px solid #fff;text-align:center;">#${index+1}</div>`;
+
+                const customIcon = L.divIcon({
+                    className: 'custom-map-marker',
+                    html: markerHtml,
+                    iconSize: [44, 26],
+                    iconAnchor: [22, 13]
+                });
+
+                const marker = L.marker([store.lat, store.lon], { icon: customIcon });
+                marker.bindPopup(`<div style="color:#0f172a;font-weight:700;"><b>Outlet: ${store.code}</b><br>Number: ${store.number}<br>Time: ${new Date(v.timestamp).toLocaleTimeString()}</div>`);
+                mapLayerGroup.addLayer(marker);
+            }
+        });
+
+        if (latLngPoints.length > 1) {
+            const polyline = L.polyline(latLngPoints, {
+                color: '#818cf8',
+                weight: 5,
+                opacity: 0.9,
+                dashArray: '8, 8'
+            });
+            mapLayerGroup.addLayer(polyline);
+        }
+
+        if (latLngPoints.length > 0) {
+            leafletMap.fitBounds(latLngPoints, { padding: [50, 50] });
+        }
+    }
+
     function getFilteredRetailers() {
         if (!currentUser) return [];
         const searchVal = document.getElementById('searchInput').value.toLowerCase().trim();
         
         return retailers.filter(item => {
-            // Filter by RSO code if regular user, or show all for Admin
             if (currentUser.role === 'rso' && item.rsoCode !== currentUser.code) return false;
 
             if (searchVal) {
@@ -495,12 +674,80 @@
         });
     }
 
+    function updateAdminDashboard() {
+        if (!currentUser || currentUser.role !== 'admin') return;
+
+        const todayStr = new Date().toISOString().slice(0, 10);
+        const currentMonthStr = todayStr.slice(0, 7);
+
+        const dailyVisits = visitsCache.filter(v => v.timestamp && v.timestamp.startsWith(todayStr)).length;
+        const mtdVisits = visitsCache.filter(v => v.timestamp && v.timestamp.startsWith(currentMonthStr)).length;
+
+        document.getElementById('dashDailyVisits').innerText = dailyVisits;
+        document.getElementById('dashMtdVisits').innerText = mtdVisits;
+
+        const rsoStats = {};
+        predefinedRSOs.forEach(rso => {
+            rsoStats[rso.code] = { name: rso.name, count: 0 };
+        });
+
+        visitsCache.forEach(v => {
+            const foundRso = predefinedRSOs.find(r => v.rsoName.includes(r.code));
+            if (foundRso && rsoStats[foundRso.code]) {
+                rsoStats[foundRso.code].count++;
+            }
+        });
+
+        const sortedStats = Object.entries(rsoStats).sort((a, b) => b[1].count - a[1].count);
+
+        const topContainer = document.getElementById('topRsoContainer');
+        const bottomContainer = document.getElementById('bottomRsoContainer');
+
+        topContainer.innerHTML = '';
+        bottomContainer.innerHTML = '';
+
+        if (sortedStats.length > 0) {
+            const top = sortedStats[0];
+            topContainer.innerHTML = `
+                <div class="ranking-item">
+                    <div class="ranking-info">
+                        <span class="ranking-name">${top[0]} - ${top[1].name}</span>
+                        <span class="ranking-meta">Verified store visits</span>
+                    </div>
+                    <span class="ranking-badge badge-top">${top[1].count} Visits</span>
+                </div>
+            `;
+
+            const bottom = sortedStats[sortedStats.length - 1];
+            bottomContainer.innerHTML = `
+                <div class="ranking-item">
+                    <div class="ranking-info">
+                        <span class="ranking-name">${bottom[0]} - ${bottom[1].name}</span>
+                        <span class="ranking-meta">Verified store visits</span>
+                    </div>
+                    <span class="ranking-badge badge-bottom">${bottom[1].count} Visits</span>
+                </div>
+            `;
+        }
+    }
+
+    function calculateDistanceMeters(lat1, lon1, lat2, lon2) {
+        const R = 6371e3;
+        const dLat = (lat2 - lat1) * Math.PI / 180;
+        const dLon = (lon2 - lon1) * Math.PI / 180;
+        const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+                  Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+                  Math.sin(dLon/2) * Math.sin(dLon/2);
+        const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+        return R * c;
+    }
+
     function updateNearbyList() {
         const data = getFilteredRetailers();
         const container = document.getElementById('retailerList');
         
         if (data.length === 0) {
-            container.innerHTML = `<div style="text-align: center; padding: 32px; color: var(--text-muted); font-weight: 600;">No outlets found.</div>`;
+            container.innerHTML = `<div style="text-align: center; padding: 36px; color: var(--text-muted); font-weight: 600;">No outlets found.</div>`;
             return;
         }
 
@@ -510,7 +757,6 @@
             card.className = `outlet-card ${item.visited ? 'visited' : ''}`;
             const statusClass = item.status === 'Y' ? 'status-y' : 'status-n';
 
-            // Re-organized UI Card layout showing Retailer Code, RSO, Retailer Number, Category (SSO/LSO), and Status (Y/N) clearly
             card.innerHTML = `
                 <div class="outlet-top-row">
                     <div class="outlet-code-wrap">
@@ -533,8 +779,7 @@
                     </div>
                 </div>
                 
-                <!-- LARGE VISIBLE VISIT BUTTON -->
-                <button class="btn-large-visit ${item.visited ? 'is-visited' : ''}" onclick="toggleVisit('${escapeHtml(item.code)}')">
+                <button class="btn-large-visit ${item.visited ? 'is-visited' : ''}" onclick="verifyAndToggleVisit('${escapeHtml(item.code)}')">
                     <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/></svg>
                     ${item.visited ? 'VISITED ✓ (Click to Undo)' : 'CLICK TO VISIT STORE'}
                 </button>
@@ -544,32 +789,65 @@
         updateCounters();
     }
 
-    function toggleVisit(code) {
+    function verifyAndToggleVisit(code) {
         const item = retailers.find(r => r.code === code);
         if (!item) return;
 
-        item.visited = !item.visited;
+        if (item.visited) {
+            executeVisitToggle(item, true);
+            return;
+        }
+
+        if (!navigator.geolocation) {
+            alert("Geolocation is not supported by your device browser.");
+            return;
+        }
+
+        showToast("Checking your GPS location...");
+        navigator.geolocation.getCurrentPosition(
+            position => {
+                const userLat = position.coords.latitude;
+                const userLon = position.coords.longitude;
+                const distance = calculateDistanceMeters(userLat, userLon, item.lat, item.lon);
+
+                if (distance <= 20) {
+                    executeVisitToggle(item, false);
+                } else {
+                    alert(`You are not in the location! You are currently ${Math.round(distance)} meters away from the retailer (Max allowed: 20 meters).`);
+                }
+            },
+            () => { alert("Unable to retrieve your GPS position. Please enable location permissions."); },
+            { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+        );
+    }
+
+    function executeVisitToggle(item, isUndo) {
+        item.visited = !isUndo;
         item.visitedAt = item.visited ? new Date().toISOString() : null;
 
         if (db) {
             const tx = db.transaction("visits", "readwrite");
             const store = tx.objectStore("visits");
             if (item.visited) {
-                store.put({
-                    id: `${currentUser.name}_${code}_${Date.now()}`,
+                const visitRecord = {
+                    id: `${currentUser.name}_${item.code}_${Date.now()}`,
                     rsoName: currentUser.name,
-                    outletCode: code,
+                    outletCode: item.code,
                     number: item.number,
                     category: item.category,
                     timestamp: item.visitedAt
-                });
+                };
+                store.put(visitRecord);
+                visitsCache.push(visitRecord);
             } else {
-                store.delete(code);
+                store.delete(item.code);
+                visitsCache = visitsCache.filter(v => v.outletCode !== item.code);
             }
         }
 
+        updateAdminDashboard();
         updateNearbyList();
-        showToast(item.visited ? `Recorded visit for ${code}` : `Removed visit for ${code}`);
+        showToast(item.visited ? `Visit verified & recorded for ${item.code}` : `Removed visit for ${item.code}`);
     }
 
     function updateCounters() {
@@ -632,7 +910,7 @@
         document.getElementById('toastMsg').innerText = msg;
         t.classList.add('show');
         clearTimeout(toastTimer);
-        toastTimer = setTimeout(() => t.classList.remove('show'), 2000);
+        toastTimer = setTimeout(() => t.classList.remove('show'), 2500);
     }
 
     function escapeHtml(str) {
