@@ -1010,10 +1010,7 @@
                 });
                 inputHtml = `<select id="modalField_${field.id}" class="form-select">${optionsHtml}</select>`;
             } else {
-                let defaultVal = '';
-                if (field.id === 'retailerName') defaultVal = item.code;
-                if (field.id === 'whatsappNo' || field.id === 'bkashNo') defaultVal = item.number;
-                inputHtml = `<input type="text" id="modalField_${field.id}" class="form-input" value="${defaultVal}" placeholder="Enter ${field.label}">`;
+                inputHtml = `<input type="text" id="modalField_${field.id}" class="form-input" value="" placeholder="Enter ${field.label}">`;
             }
 
             group.innerHTML = `
