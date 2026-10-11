@@ -613,18 +613,17 @@
             const retailerCode = cols[0] || '';
             const rsoCode = cols[1] || 'General';
             
-            // Fixed column index: Retailer Number is on the 5th column (Index 4). 
-            // If it's on a different column, adjust this index accordingly (e.g., cols[2] or cols[3]).
-            const retailerNumber = cols[3] || cols[4] || ''; 
-            const category = cols[5] || '';
+            // Retailer/Topup number from the 6th column (index 5) mapped to retailer code wise number
+            const retailerNumber = cols[5] || '';
+            const category = cols[6] || '';
             
-            let lat = parseFloat(cols[6]);
-            let lon = parseFloat(cols[7]);
+            let lat = parseFloat(cols[7]);
+            let lon = parseFloat(cols[8]);
 
             if (isNaN(lat)) lat = 0;
             if (isNaN(lon)) lon = 0;
 
-            const status = cols[9] || 'Y';
+            const status = cols[10] || 'Y';
 
             if (retailerCode) {
                 retailers.push({
@@ -660,7 +659,6 @@
                 r.visitedAt = null;
             });
 
-            // Reset visit status if visit was done on a previous calendar day, keeping only today's visits active
             visitsCache.forEach(v => {
                 const match = retailers.find(r => r.code === v.outletCode);
                 if (match) {
@@ -1007,12 +1005,10 @@
         if (!item) return;
 
         if (item.visited) {
-            // Allow undoing visit directly
             executeVisitToggle(item, true, {});
             return;
         }
 
-        // Open visit info window modal
         activeVisitingOutletCode = code;
         renderVisitModalFields(item);
         document.getElementById('visitModal').classList.add('active');
