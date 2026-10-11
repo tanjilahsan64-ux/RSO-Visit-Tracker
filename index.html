@@ -613,14 +613,17 @@
             const retailerCode = cols[0] || '';
             const rsoCode = cols[1] || 'General';
             
+            // Fixed column index: Retailer Number is on the 5th column (Index 4). 
+            // If it's on a different column, adjust this index accordingly (e.g., cols[2] or cols[3]).
+            const retailerNumber = cols[3] || cols[4] || ''; 
+            const category = cols[5] || '';
+            
             let lat = parseFloat(cols[6]);
             let lon = parseFloat(cols[7]);
 
             if (isNaN(lat)) lat = 0;
             if (isNaN(lon)) lon = 0;
 
-            const retailerNumber = cols[4] || '';
-            const category = cols[5] || '';
             const status = cols[9] || 'Y';
 
             if (retailerCode) {
